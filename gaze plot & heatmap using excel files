@@ -1,0 +1,44 @@
+library(readxl)
+library(ggplot2)
+library(grid)
+require(jpeg)
+
+
+o1 <- read_excel("files", sheet = '1');
+library(saccades);
+fo1=detect.fixations(o1);
+stato1=calculate.summary(fo1);
+reso1=round(stato1,digits=2);
+View(reso1);
+
+write.csv(fo1, file = "fiksasi.csv");
+
+bgo1= readJPEG("gambar.jpg")
+
+pfo1 = ggplot(fo1, aes(x, y)) + ggtitle("Heatmap") +
+  annotation_raster(bgo1, -Inf, Inf, -Inf, Inf, interpolate = TRUE) +
+  stat_density2d(data = fo1, aes(x, y, fill = ..level.., alpha = ..level..), size = 5, bins = 50, geom = 'polygon') +
+  theme_bw() + scale_fill_gradient(low = "green", high = "red") + geom_point() +
+  scale_alpha_continuous(range = c(0.01, 0.5), guide = FALSE) +
+  coord_fixed(xlim = c(0, 1920), ylim = c(0, 1080)) +
+  scale_y_reverse() +
+  theme(axis.line = element_blank(),
+        plot.title = element_text(color = "dodgerblue", size = 14, face = "bold"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank());
+plot(pfo1)
+ggsave("Heatmap.jpg", plot = pfo1);
+
+df = fo1
+area1 = ggplot(df, aes(x, y)) + ggtitle("Gaze plot") +
+  annotation_raster(bgo1, -Inf, Inf, -Inf, Inf, interpolate = TRUE) +
+  geom_point() + scale_alpha_continuous(range = c(0.01, 0.5), guide = FALSE) +
+  coord_fixed(xlim = c(0, 1920), ylim = c(0, 1080)) +
+  scale_y_reverse() +
+  geom_segment(aes(xend=c(tail(x, n=-1), NA), yend=c(tail(y, n=-1), NA)),
+               arrow=arrow(length=unit(0.4,"cm"), type = "open"))
+plot(area1);
+ggsave("Gazeplot.jpg", plot = area1)
